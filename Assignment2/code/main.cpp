@@ -30,28 +30,35 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
 
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
 {
+
     Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
 
-    // float top = tan((eye_fov/2)*MY_PI/180) * abs(zNear);
-    // float bottom = -top;
-    // float height = top - bottom;
-    // float width = aspect_ratio*height;
+    float top = std::tan(eye_fov/2.0f*MY_PI/180.0f) * std::abs(zNear);
+    // make top = -top here if you want the triangle upright.
+    top = -top;
+    float bottom = (-1)*top;
+    float right = top * aspect_ratio;
+    float left = (-1)*right;
 
-
-    // // TODO: Implement this function
-    // // Create the projection matrix for the given parameters.
-    // // Then return it.
-    Eigen::Matrix4f translate = Eigen::Matrix4f::Identity();
-    // // translate(0,3) = 
-    // translate(1,3) = -(top+bottom)/2;
-    // translate(2,3) = -(zNear+zFar)/2;
+    Eigen::Matrix4f perspToOrtho = Eigen::Matrix4f::Identity();
+    perspToOrtho(0,0) = zNear;
+    perspToOrtho(1,1) = zNear;
+    perspToOrtho(2,2) = zNear+zFar;
+    perspToOrtho(2,3) = (-1)* zNear *zFar;
+    perspToOrtho(3,2) = 1;
+    perspToOrtho(3,3) = 0;
 
     Eigen::Matrix4f scale = Eigen::Matrix4f::Identity();
-    scale(0,0) = 0.5;
-    scale(1,1) = 0.5;
-    scale(2,2) = 0.5;
+    scale(0,0) = 2.0f/(right-left);
+    scale(1,1) = 2.0f/(top - bottom);
+    scale(2,2) = 2.0f/(zNear - zFar);
 
-    projection = scale*translate;
+    Eigen::Matrix4f translate = Eigen::Matrix4f::Identity();
+    translate(0,3) = (-1)*(right+left)/2.0f;
+    translate(1,3) = (-1)*(top+bottom)/2.0f;
+    translate(2,3) = (-1)*(zNear+zFar)/2.0f;
+
+    projection = scale * translate * perspToOrtho;
 
     return projection;
 }
