@@ -90,7 +90,7 @@ void rst::rasterizer::draw(pos_buf_id pos_buffer, ind_buf_id ind_buffer, col_buf
         {
             vert.x() = 0.5*width*(vert.x()+1.0);
             vert.y() = 0.5*height*(vert.y()+1.0);
-            vert.z() = -vert.z() * f1 + f2;
+            vert.z() = vert.z() * f1 + f2;
         }
 
         for (int i = 0; i < 3; ++i)
@@ -127,6 +127,7 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
         minY = std::min(minY, v[i].y());
         maxY = std::max(maxY, v[i].y());
     }
+
     
     // std::cout<< minX << " " << minY << " "<< maxX << " "<< maxY << std::endl;
     // std::cout<< "*********************************************" << std::endl;
@@ -138,15 +139,18 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
         for (int j = minY; j<maxY; j++){
             float x = i;
             float y = j;
-            if (insideTriangle(x,y,t.v)){
+            if (insideTriangle(x+0.5,y+0.5,t.v)){
                 //use the following code to get the interpolated z value.
                 auto[alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
                 float w_reciprocal = 1.0/(alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
                 float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
                 z_interpolated *= w_reciprocal;
-                auto point = Eigen::Vector3f(x,y,z_interpolated);
-                
-                set_pixel(point,t.getColor());
+
+                if (depth_buf[get_index(x,y)] > z_interpolated){
+                    depth_buf[get_index(x,y)] = z_interpolated;
+                    auto point = Eigen::Vector3f(x,y,z_interpolated);
+                    set_pixel(point, t.getColor());
+                }
             }
         }
     }
