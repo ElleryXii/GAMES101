@@ -131,27 +131,66 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
     
     // std::cout<< minX << " " << minY << " "<< maxX << " "<< maxY << std::endl;
     // std::cout<< "*********************************************" << std::endl;
-
+    bool superSampling = true;
+    int const steps[2] = {-0.25, 0.25};
+    const Eigen::Vector3f black = {0,0,0};
 
     // TODO : Find out the bounding box of current triangle.
     // iterate through the pixel and find if the current pixel is inside the triangle
     for (int i = minX; i<maxX; i++){
         for (int j = minY; j<maxY; j++){
-            float x = i;
-            float y = j;
-            if (insideTriangle(x+0.5,y+0.5,t.v)){
-                //use the following code to get the interpolated z value.
-                auto[alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
-                float w_reciprocal = 1.0/(alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
-                float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
-                z_interpolated *= w_reciprocal;
-
-                if (depth_buf[get_index(x,y)] > z_interpolated){
-                    depth_buf[get_index(x,y)] = z_interpolated;
-                    auto point = Eigen::Vector3f(x,y,z_interpolated);
-                    set_pixel(point, t.getColor());
+            float x = i+0.5;
+            float y = j+0.5;
+            
+            if (superSampling) {
+                float r=0, b=0, g=0;
+                bool ztest = false;
+                float min_depth = FLT_MAX;
+                for (int step_x = 0; step_x < 2; step_x++) {
+                    for (int step_y = 0; step_y < 2; step_y++) {
+                        if (insideTriangle(x+steps[step_x], y+steps[step_y], t.v)) 
+                        {
+                            r += t.getColor().x();
+                            b += t.getColor().y();
+                            g += t.getColor().z();
+                            auto [alpha, beta, gamma] = computeBarycentric2D(x + steps[step_x], y + steps[step_y], t.v);
+                            float w_reciprocal = 1.0 / (alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
+                            float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
+                            z_interpolated *= w_reciprocal;
+                            min_depth = std::min(min_depth,z_interpolated);
+                            if (depth_buf[get_index(i, j)] > z_interpolated) {
+                                ztest = true;
+                            }
+                        }
+                    }
+                }
+                Eigen::Vector3f color;
+                color<<  r / 4.0, b / 4.0, g / 4.0 ;
+                
+                if (ztest && depth_buf[get_index(i, j)] > min_depth) {
+                    depth_buf[get_index(i, j)] = min_depth;
+                    auto point = Eigen::Vector3f(i, j, min_depth);
+                    set_pixel(point, color);
                 }
             }
+            else {
+
+                if (insideTriangle(x, y, t.v)) {
+                    //use the following code to get the interpolated z value.
+                    auto [alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
+                    float w_reciprocal = 1.0 / (alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
+                    float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
+                    z_interpolated *= w_reciprocal;
+
+                    if (depth_buf[get_index(i, j)] > z_interpolated) {
+                        depth_buf[get_index(i, j)] = z_interpolated;
+                        auto point = Eigen::Vector3f(i, j, z_interpolated);
+                        set_pixel(point, t.getColor());
+                    }
+                }
+
+            }
+
         }
     }
 }

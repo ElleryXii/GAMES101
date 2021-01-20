@@ -4,7 +4,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
-constexpr double MY_PI = 3.1415926;
+constexpr double MY_PI = 3.1415926535;
 
 Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
 {
@@ -19,6 +19,17 @@ Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
     return view;
 }
 
+//360 deg = 2pi rad
+// 1 rad = 180deg/pi
+// deg = rad * 180/pi
+Eigen::Matrix4f get_rotation(Vector3f axis, float angle) {
+    Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
+    // Convert def to rad
+    float r = angle * MY_PI / 180.0f;
+
+    return model;
+}
+
 Eigen::Matrix4f get_model_matrix(float rotation_angle)
 {
     Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
@@ -28,11 +39,11 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
     // Then return it.
     float r = rotation_angle*MY_PI/180.0f;
 
-    //z-axis
-    model(0,0) = cos(r);
-    model(0,1) = -sin(r);
-    model(1,0) = sin(r);
-    model(1,1) = cos(r);
+    ////z-axis
+    //model(0,0) = cos(r);
+    //model(0,1) = -sin(r);
+    //model(1,0) = sin(r);
+    //model(1,1) = cos(r);
 
     // //x-axis
     // model(1,1) = cos(r);
@@ -40,11 +51,11 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
     // model(2,1) = sin(r);
     // model(2,2) = cos(r);
 
-    // //y-axis
-    // model(0,0) = cos(r);
-    // model(0,2) = sin(r);
-    // model(2,0) = - sin(r);
-    // model(2,2) = cos(r);
+    //y-axis
+    model(0,0) = cos(r);
+    model(0,2) = sin(r);
+    model(2,0) = - sin(r);
+    model(2,2) = cos(r);
 
     // std::cout<<model<<std::endl;
 
@@ -71,7 +82,7 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
     perspToOrtho(2,3) = (-1)* zNear *zFar;
     perspToOrtho(3,2) = 1;
     perspToOrtho(3,3) = 0;
-    std::cout <<perspToOrtho<<std::endl;
+    //std::cout <<perspToOrtho<<std::endl;
 
     // // TODO: Implement this function
     // // Create the projection matrix for the given parameters.
@@ -154,11 +165,11 @@ int main(int argc, const char** argv)
 
         if (key == 'a') {
             angle += 10;
-            std::cout<<angle<<std::endl;
+            //std::cout<<angle<<std::endl;
         }
         else if (key == 'd') {
             angle -= 10;
-            std::cout<<angle<<std::endl;
+            //std::cout<<angle<<std::endl;
         }
     }
 
