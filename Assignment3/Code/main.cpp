@@ -238,6 +238,11 @@ Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
     return result_color * 255.f;
 }
 
+inline bool file_exists(const std::string& name) {
+    std::ifstream f(name.c_str());
+    return f.good();
+}
+
 int main(int argc, const char** argv)
 {
     std::vector<Triangle*> TriangleList;
@@ -247,10 +252,10 @@ int main(int argc, const char** argv)
 
     std::string filename = "output.png";
     objl::Loader Loader;
-    std::string obj_path = "../models/spot/";
+    std::string obj_path = "../../../models/spot/";
 
     // Load .obj File
-    bool loadout = Loader.LoadFile("../models/spot/spot_triangulated_good.obj");
+    bool loadout = Loader.LoadFile("../../../models/spot/spot_triangulated_good.obj");
     for(auto mesh:Loader.LoadedMeshes)
     {
         for(int i=0;i<mesh.Vertices.size();i+=3)
