@@ -132,7 +132,7 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
     // std::cout<< minX << " " << minY << " "<< maxX << " "<< maxY << std::endl;
     // std::cout<< "*********************************************" << std::endl;
     bool superSampling = true;
-    int const steps[2] = {-0.25, 0.25};
+    float const steps[2] = {-0.25, 0.25};
     const Eigen::Vector3f black = {0,0,0};
 
     // TODO : Find out the bounding box of current triangle.

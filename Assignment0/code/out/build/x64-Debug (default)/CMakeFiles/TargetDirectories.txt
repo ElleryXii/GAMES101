@@ -1,3 +1,0 @@
-D:/GAMES101/Assignment0/code/out/build/x64-Debug (default)/CMakeFiles/edit_cache.dir
-D:/GAMES101/Assignment0/code/out/build/x64-Debug (default)/CMakeFiles/Transformation.dir
-D:/GAMES101/Assignment0/code/out/build/x64-Debug (default)/CMakeFiles/rebuild_cache.dir
