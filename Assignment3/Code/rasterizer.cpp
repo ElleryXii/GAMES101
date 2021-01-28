@@ -149,7 +149,7 @@ auto to_vec4(const Eigen::Vector3f& v3, float w = 1.0f)
     return Vector4f(v3.x(), v3.y(), v3.z(), w);
 }
 
-static bool insideTriangle(int x, int y, const Vector4f* _v){
+static bool insideTriangle(float x, float y, const Vector4f* _v){
     Vector3f v[3];
     for(int i=0;i<3;i++)
         v[i] = {_v[i].x(),_v[i].y(), 1.0};
@@ -259,15 +259,43 @@ static Eigen::Vector2f interpolate(float alpha, float beta, float gamma, const E
 //Screen space rasterization
 void rst::rasterizer::rasterize_triangle(const Triangle& t, const std::array<Eigen::Vector3f, 3>& view_pos) 
 {
-    // TODO: From your HW3, get the triangle rasterization code.
-    // TODO: Inside your rasterization loop:
-    //    * v[i].w() is the vertex view space depth value z.
-    //    * Z is interpolated view space depth for the current pixel
-    //    * zp is depth between zNear and zFar, used for z-buffer
+    //// TODO: From your HW3, get the triangle rasterization code.
+    //// TODO: Inside your rasterization loop:
+    ////    * v[i].w() is the vertex view space depth value z.
+    ////    * Z is interpolated view space depth for the current pixel
+    ////    * zp is depth between zNear and zFar, used for z-buffer
 
-    // float Z = 1.0 / (alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
-    // float zp = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
-    // zp *= Z;
+    //// float Z = 1.0 / (alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
+    //// float zp = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
+    //// zp *= Z;
+
+    //Find the bouding box
+    auto v = t.toVector4();
+    int minX = std::floor(std::min(v[0][0], std::min(v[1][0], v[2][0])));
+    int maxX = std::ceil(std::max(v[0][0], std::max(v[1][0], v[2][0])));
+    int minY = std::floor(std::min(v[0][1], std::min(v[1][1], v[2][1])));
+    int maxY = std::ceil(std::max(v[0][1], std::max(v[1][1], v[2][1])));
+
+    // iterate through the pixel and find if the current pixel is inside the triangle
+    for (int i = minX; i < maxX; i++) {
+        for (int j = minY; j < maxY; j++) {
+            float x = i + 0.5f;
+            float y = j + 0.5f;
+
+            if (insideTriangle(x, y, t.v)) {
+                set_pixel(Eigen::Vector2i(i, j), Eigen::Vector3f(1., 1., 1.));
+                ////use the following code to get the interpolated z value.
+                //auto [alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
+                //float w_reciprocal = 1.0 / (alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
+                //float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
+                //z_interpolated *= w_reciprocal;
+                
+                //auto point = Eigen::Vector2i(minX, minY);
+                //set_pixel(point, Eigen::Vector3f(1.0f, 1.0f, 1.0f));
+
+            }
+        }
+    }
 
     // TODO: Interpolate the attributes:
     // auto interpolated_color

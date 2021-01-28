@@ -40,7 +40,7 @@ auto to_vec4(const Eigen::Vector3f& v3, float w = 1.0f)
 }
 
 
-static bool insideTriangle(int x, int y, const Vector3f* _v)
+static bool insideTriangle(float x, float y, const Vector3f* _v)
 {   
     // TODO : Implement this function to check if the point (x, y) is inside the triangle represented by _v[0], _v[1], _v[2]
     auto point = Eigen::Vector3f(x,y,0);
@@ -113,7 +113,8 @@ void rst::rasterizer::draw(pos_buf_id pos_buffer, ind_buf_id ind_buffer, col_buf
 }
 
 //Screen space rasterization
-void rst::rasterizer::rasterize_triangle(const Triangle& t) {
+void rst::rasterizer::rasterize_triangle(const Triangle& t) 
+{
     auto v = t.toVector4();
     float minX = INT_MAX;
     float maxX = INT_MIN;
@@ -131,7 +132,7 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
     
     // std::cout<< minX << " " << minY << " "<< maxX << " "<< maxY << std::endl;
     // std::cout<< "*********************************************" << std::endl;
-    bool superSampling = true;
+    bool superSampling = false;
     float const steps[2] = {-0.25, 0.25};
     const Eigen::Vector3f black = {0,0,0};
 
