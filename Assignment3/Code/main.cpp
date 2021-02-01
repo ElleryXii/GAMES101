@@ -55,6 +55,7 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float z
 
     float top = std::tan(eye_fov / 2.0f * MY_PI / 180.0f) * std::abs(zNear);
     // make top = -top here if you want the triangle upright.
+    top = -top;
     float bottom = (-1) * top;
     float right = top * aspect_ratio;
     float left = (-1) * right;
@@ -175,9 +176,11 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
-        
-    }
+        Vector3f l = (point - light.position).normalized();
+        auto diffused = color.cross((light.intensity)) * std::max(0.0f, normal.normalized().dot(l));
+        result_color += diffused;
 
+    }
     return result_color * 255.f;
 }
 
