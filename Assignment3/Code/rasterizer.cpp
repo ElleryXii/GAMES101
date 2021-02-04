@@ -291,8 +291,8 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t, const std::array<Eig
                 if (depth_buf[get_index(i, j)] > z_interpolated) {
                     depth_buf[get_index(i, j)] = z_interpolated;
                     // TODO: Interpolate the attributes:
-                    auto interpolated_color = interpolate(alpha, beta, gamma, t.color[0], t.color[1], t.color[2], w_reciprocal);
                     auto interpolated_normal = interpolate(alpha, beta, gamma, t.normal[0], t.normal[1], t.normal[2], w_reciprocal);
+                    auto interpolated_color = alpha * t.color[0] + beta*t.color[1] + gamma*t.color[2];
                     auto interpolated_texcoords = interpolate(alpha, beta, gamma, t.tex_coords[0], t.tex_coords[1], t.tex_coords[2], w_reciprocal);
                     auto interpolated_shadingcoords = interpolate(alpha, beta, gamma, t.normal[0], t.normal[1], t.normal[2], w_reciprocal);
 
