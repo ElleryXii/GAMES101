@@ -284,6 +284,7 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t, const std::array<Eig
 
             if (insideTriangle(x, y, t.v)) {
                 auto [alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
+                //std::cout << alpha<<" " << beta << " " << gamma << std::endl;
                 float w_reciprocal = 1.0 / (alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
                 float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
                 z_interpolated *= w_reciprocal;
@@ -292,8 +293,12 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t, const std::array<Eig
                     depth_buf[get_index(i, j)] = z_interpolated;
                     // TODO: Interpolate the attributes:
                     auto interpolated_normal = interpolate(alpha, beta, gamma, t.normal[0], t.normal[1], t.normal[2], w_reciprocal);
-                    auto interpolated_color = alpha * t.color[0] + beta*t.color[1] + gamma*t.color[2];
-                    auto interpolated_texcoords = interpolate(alpha, beta, gamma, t.tex_coords[0], t.tex_coords[1], t.tex_coords[2], w_reciprocal);
+                    auto interpolated_color = interpolate(alpha, beta, gamma, t.color[0], t.color[1], t.color[2], 1);
+
+                    //Some uv values would be negative, causing out of bound when getting color from texture, so we need to clamp it to [0,1]
+                    auto tex_coord = interpolate(alpha, beta, gamma,t.tex_coords[0], t.tex_coords[1], t.tex_coords[2], 1);
+                    auto interpolated_texcoords = Eigen::Vector2f(std::clamp(tex_coord.x(),0.0f, 1.0f), std::clamp(tex_coord.y(), 0.0f, 1.0f));
+
                     auto interpolated_shadingcoords = interpolate(alpha, beta, gamma, t.normal[0], t.normal[1], t.normal[2], w_reciprocal);
 
                     // Use: 

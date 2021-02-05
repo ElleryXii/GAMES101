@@ -69,9 +69,6 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float z
     perspToOrtho(3, 3) = 0;
     //std::cout <<perspToOrtho<<std::endl;
 
-    // // TODO: Implement this function
-    // // Create the projection matrix for the given parameters.
-    // // Then return it.
     Eigen::Matrix4f scale = Eigen::Matrix4f::Identity();
     scale(0, 0) = 2.0f / (right - left);
     scale(1, 1) = 2.0f / (top - bottom);
@@ -118,7 +115,8 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     if (payload.texture)
     {
         // TODO: Get the texture value at the texture coordinates of the current fragment
-
+        //std::cout << payload.tex_coords.x() << " " << payload.tex_coords.y() << std::endl;
+        return_color = payload.texture->getColor(payload.tex_coords.x(), payload.tex_coords.y());
     }
     Eigen::Vector3f texture_color;
     texture_color << return_color.x(), return_color.y(), return_color.z();
@@ -147,6 +145,20 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
 
+        //Distance between light source and point, squared.
+        auto r_squared = std::pow((point.x() - light.position.x()), 2) + std::pow((point.y() - light.position.y()), 2) + std::pow((point.z() - light.position.z()), 2);
+
+        // l = light direction
+        Vector3f l = (light.position - point).normalized();
+        Vector3f n = normal.normalized();
+        Vector3f h = ((eye_pos - point).normalized() + l).normalized();
+
+        //Note: use cwiseProduct
+        auto diffused = kd.cwiseProduct((light.intensity / r_squared)) * std::max(0.0f, n.dot(l));
+        auto specular = ks.cwiseProduct(light.intensity / r_squared) * std::pow(std::max(0.0f, n.dot(h)), p);
+        auto ambient = ka.cwiseProduct(amb_light_intensity);
+
+        result_color += ambient + diffused + specular;
     }
 
     return result_color * 255.f;
@@ -323,7 +335,7 @@ int main(int argc, const char** argv)
     auto texture_path = "hmap.jpg";
     r.set_texture(Texture(obj_path + texture_path));
 
-    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
+    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = texture_fragment_shader;
 
     if (argc >= 2)
     {
