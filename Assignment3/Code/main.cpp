@@ -252,7 +252,6 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
 
 
     }
-
     return result_color * 255.f;
 }
 
@@ -289,7 +288,23 @@ Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
     // dV = kh * kn * (h(u,v+1/h)-h(u,v))
     // Vector ln = (-dU, -dV, 1)
     // Normal n = normalize(TBN * ln)
+    normal = normal.normalized();
+    auto x = normal.x();
+    auto y = normal.y();
+    auto z = normal.z();
+    auto t = Vector3f(x * y / sqrt(x * x + z * z), sqrt(x * x + z * z), z * y / sqrt(x * x + z * z));
+    auto b = normal.cross(t);
+    Matrix3f TBN;
+    TBN << t, b, normal;
+    auto h = payload.texture->height;
+    auto w = payload.texture->width;
+    auto u = payload.tex_coords.x();
+    auto v = payload.tex_coords.y();
 
+    auto dU = kh * kn * (payload.texture->getColor(u+1.0/w, v).norm() - payload.texture->getColor(u,v).norm());
+    auto dV = kh * kn * (payload.texture->getColor(u, v+1.0/h).norm() - payload.texture->getColor(u,v).norm());
+    auto ln = Vector3f(-dU, -dV, 1.0);
+    normal = (TBN * ln).normalized();
 
     Eigen::Vector3f result_color = {0, 0, 0};
     result_color = normal;
@@ -335,7 +350,7 @@ int main(int argc, const char** argv)
     auto texture_path = "hmap.jpg";
     r.set_texture(Texture(obj_path + texture_path));
 
-    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = texture_fragment_shader;
+    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = bump_fragment_shader;
 
     if (argc >= 2)
     {
