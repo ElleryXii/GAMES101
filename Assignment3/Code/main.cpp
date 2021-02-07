@@ -241,7 +241,24 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
     // Vector ln = (-dU, -dV, 1)
     // Position p = p + kn * n * h(u,v)
     // Normal n = normalize(TBN * ln)
+    normal = normal.normalized();
+    auto x = normal.x();
+    auto y = normal.y();
+    auto z = normal.z();
+    auto t = Vector3f(x * y / sqrt(x * x + z * z), sqrt(x * x + z * z), z * y / sqrt(x * x + z * z));
+    auto b = normal.cross(t);
+    Matrix3f TBN;
+    TBN << t, b, normal;
+    auto h = payload.texture->height;
+    auto w = payload.texture->width;
+    auto u = payload.tex_coords.x();
+    auto v = payload.tex_coords.y();
 
+    auto dU = kh * kn * (payload.texture->getColor(u + 1.0 / w, v).norm() - payload.texture->getColor(u, v).norm());
+    auto dV = kh * kn * (payload.texture->getColor(u, v + 1.0 / h).norm() - payload.texture->getColor(u, v).norm());
+    auto ln = Vector3f(-dU, -dV, 1.0);
+    normal = (TBN * ln).normalized();
+    point += (kn * normal * payload.texture->getColor(u, v).norm());
 
     Eigen::Vector3f result_color = {0, 0, 0};
 
@@ -249,8 +266,20 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
+                //Distance between light source and point, squared.
+        auto r_squared = std::pow((point.x() - light.position.x()), 2) + std::pow((point.y() - light.position.y()), 2) + std::pow((point.z() - light.position.z()), 2);
 
+        // l = light direction
+        Vector3f l = (light.position - point).normalized();
+        Vector3f n = normal.normalized();
+        Vector3f h = ((eye_pos - point).normalized() + l).normalized();
 
+        //Note: use cwiseProduct
+        auto diffused = kd.cwiseProduct((light.intensity / r_squared)) * std::max(0.0f, n.dot(l));
+        auto specular = ks.cwiseProduct(light.intensity / r_squared) * std::pow(std::max(0.0f, n.dot(h)), p);
+        auto ambient = ka.cwiseProduct(amb_light_intensity);
+
+        result_color += ambient + diffused + specular;
     }
     return result_color * 255.f;
 }
@@ -304,6 +333,7 @@ Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
     auto dU = kh * kn * (payload.texture->getColor(u+1.0/w, v).norm() - payload.texture->getColor(u,v).norm());
     auto dV = kh * kn * (payload.texture->getColor(u, v+1.0/h).norm() - payload.texture->getColor(u,v).norm());
     auto ln = Vector3f(-dU, -dV, 1.0);
+
     normal = (TBN * ln).normalized();
 
     Eigen::Vector3f result_color = {0, 0, 0};
@@ -350,7 +380,7 @@ int main(int argc, const char** argv)
     auto texture_path = "hmap.jpg";
     r.set_texture(Texture(obj_path + texture_path));
 
-    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = bump_fragment_shader;
+    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = displacement_fragment_shader;
 
     if (argc >= 2)
     {
