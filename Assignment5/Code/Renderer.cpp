@@ -121,9 +121,7 @@ std::optional<hit_payload> trace(
 // If the surface is diffuse/glossy we use the Phong illumation model to compute the color
 // at the intersection point.
 // [/comment]
-Vector3f castRay(
-        const Vector3f &orig, const Vector3f &dir, const Scene& scene,
-        int depth)
+Vector3f castRay( const Vector3f &orig, const Vector3f &dir, const Scene& scene,int depth)
 {
     if (depth > scene.maxDepth) {
         return Vector3f(0.0,0.0,0.0);

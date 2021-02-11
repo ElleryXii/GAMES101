@@ -57,8 +57,7 @@ public:
     }
 
     bool intersect(const Ray& ray) override;
-    bool intersect(const Ray& ray, float& tnear,
-                   uint32_t& index) const override;
+    bool intersect(const Ray& ray, float& tnear, uint32_t& index) const override;
     Intersection getIntersection(Ray ray) override;
     void getSurfaceProperties(const Vector3f& P, const Vector3f& I,
                               const uint32_t& index, const Vector2f& uv,
@@ -233,9 +232,25 @@ inline Intersection Triangle::getIntersection(Ray ray)
 
     // TODO find ray triangle intersection
 
+    auto E1 = v1 - v0;
+    auto E2 = v2 - v0;
+    auto S = ray.origin - v0;
+    auto S1 = crossProduct(ray.direction, E2);
+    auto S2 = crossProduct(S, E1);
+    auto t = 1.0 / dotProduct(S1, E1) * dotProduct(S2, E2);
+    auto b1 = 1.0 / dotProduct(S1, E1) * dotProduct(S1, S);
+    auto b2 = 1.0 / dotProduct(S1, E1) * dotProduct(S2, ray.direction);
 
 
-
+    if (t >= 0 && b1 >= 0 && b2 >= 0 && (1 - b1 - b2) >= 0) {
+        inter = Intersection();
+        inter.coords = Vector3f();
+        inter.normal = normal;
+        inter.distance = t;
+        inter.obj = this;
+        inter.m = m;
+        inter.happened = true;
+    }
     return inter;
 }
 
