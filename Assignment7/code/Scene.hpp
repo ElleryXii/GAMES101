@@ -24,8 +24,7 @@ public:
     int maxDepth = 1;
     float RussianRoulette = 0.8;
 
-    Scene(int w, int h) : width(w), height(h)
-    {}
+    Scene(int w, int h) : width(w), height(h){}
 
     void Add(Object *object) { objects.push_back(object); }
     void Add(std::unique_ptr<Light> light) { lights.push_back(std::move(light)); }

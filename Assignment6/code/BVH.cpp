@@ -102,23 +102,22 @@ Intersection BVHAccel::Intersect(const Ray& ray) const
 
 Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
 {
+    // TODO Traverse the BVH to find intersection
     Intersection inter;
-    //auto invDir = Vector3f(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
-    std::array<int,3> dirIsNeg = { int(ray.direction.x > 0), int(ray.direction.y > 0), int(ray.direction.z > 0) };
-
-    if (node->bounds.IntersectP(ray, ray.direction_inv, dirIsNeg)) 
+    Vector3f invDir = Vector3f{ 1.0f / ray.direction.x, 1.0f / ray.direction.y, 1.0f / ray.direction.z };
+    std::array<int, 3> dirIsNeg = { ray.direction.x > 0, ray.direction.y > 0, ray.direction.z > 0 };
+    if (node->bounds.IntersectP(ray, ray.direction_inv, dirIsNeg))
     {
-        if (!node->left && !node->right) {
+        if (node->left == nullptr && node->right == nullptr)
+        {
             inter = node->object->getIntersection(ray);
-            return inter;
         }
-        if (node->left != nullptr) {
-            inter = getIntersection(node->left, ray);
+        else
+        {
+            Intersection h1 = getIntersection(node->left, ray);
+            Intersection h2 = getIntersection(node->right, ray);
+            inter = h1.distance < h2.distance ? h1 : h2;
         }
-        if (inter.happened == false) {
-           inter = getIntersection(node->right, ray);
-        }
-        return inter;
     }
     return inter;
 }
