@@ -36,10 +36,7 @@ void Scene::sampleLight(Intersection &pos, float &pdf) const
     }
 }
 
-bool Scene::trace(
-        const Ray &ray,
-        const std::vector<Object*> &objects,
-        float &tNear, uint32_t &index, Object **hitObject)
+bool Scene::trace(const Ray &ray,const std::vector<Object*> &objects,float &tNear, uint32_t &index, Object **hitObject)
 {
     *hitObject = nullptr;
     for (uint32_t k = 0; k < objects.size(); ++k) {
@@ -52,24 +49,57 @@ bool Scene::trace(
             index = indexK;
         }
     }
-
-
     return (*hitObject != nullptr);
 }
 
 // Implementation of Path Tracing
 Vector3f Scene::castRay(const Ray &ray, int depth) const
 {
-    // TO DO Implement Path Tracing Algorithm here
-    if (depth > this->maxDepth) {
-        return Vector3f(0.0, 0.0, 0.0);
-    }
-    Intersection intersection = Scene::intersect(ray);
-    Material* m = intersection.m;
-    Object* hitObject = intersection.obj;
     Vector3f hitColor = this->backgroundColor;
-    if (intersection.happened) {
 
+    //Find the Intersection of camera ray with the scene
+    Intersection objInter = Scene::intersect(ray);
+
+    if (objInter.happened) 
+    {
+        Material* m = objInter.m;
+        
+        //Return light emission if ligh is hit.
+        if (m->hasEmission()) return m->getEmission();
+
+        Vector3f N = objInter.normal;
+        Vector3f light_dir = Vector3f(0.0, 0.0, 0.0);
+        Vector3f light_indir = Vector3f(0.0, 0.0, 0.0);
+
+        //Direct light:
+        float pdf = 0.0f;
+        Intersection lightInter;
+        sampleLight(lightInter, pdf);
+
+        Vector3f obj2light = lightInter.coords - objInter.coords;
+        Vector3f ws = obj2light.normalized();
+        float distancePow2 = obj2light.x * obj2light.x + obj2light.y * obj2light.y + obj2light.z * obj2light.z;
+
+        Ray obj2lightray = {objInter.coords, ws};
+        Intersection t = intersect(obj2lightray);
+        if (t.distance - obj2light.norm() > -EPSILON)
+        {
+            light_dir = lightInter.emit * objInter.m->eval(ray.direction, ws, N) * dotProduct(ws, N) * dotProduct(-ws, lightInter.normal) / distancePow2 / pdf;
+        }
+
+        //Indirect light:
+        if (get_random_float() < RussianRoulette) 
+        {
+            auto wi = objInter.m->sample(ray.direction, objInter.normal).normalized();
+            Ray q = Ray(objInter.coords, wi);
+            Intersection nextInter = intersect(q);
+            if (nextInter.happened && !nextInter.m->hasEmission()) {
+                float pdf = m->pdf(ray.direction, wi, N);
+                light_indir = castRay(q, depth+1)* m->eval(ray.direction, wi, N)*dotProduct(wi, N)/pdf/RussianRoulette;
+            }
+        }
+
+        hitColor = light_dir + light_indir;
     }
     return hitColor;
 }
