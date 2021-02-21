@@ -14,7 +14,9 @@
 ## Assignment 4
 - Bézier curve & De Casetljau algorithm
 ## Assignment 5
-- Ray tracing
+- Ray tracing (Whitted-Style)
 - Möller-Trumbore intersection algorithm
 ## Assignment 6
 - Bounding Volume Hierarchy (BVH)
+## Assignment 7
+- Path tracing
