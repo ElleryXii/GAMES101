@@ -19,15 +19,20 @@ Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
     return view;
 }
 
-//360 deg = 2pi rad
-// 1 rad = 180deg/pi
-// deg = rad * 180/pi
+
 Eigen::Matrix4f get_rotation(Vector3f axis, float angle) {
-    Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
-    // Convert def to rad
+    // Convert deg to rad
     float r = angle * MY_PI / 180.0f;
 
-    return model;
+    //Use Rodrigues' Rotation Formula
+    Matrix3f N;
+    N << 0, -axis[2], axis[1] , axis[2], 0, -axis[0], -axis[1], axis[0], 0;
+
+    axis = axis.transpose();
+    MatrixXf temp = std::cos(r)* Matrix3f::Identity() + (1.0 - std::cos(r)) * axis * axis.transpose() + sin(r) * N;
+    Eigen::Matrix4f rotate_martix = Eigen::Matrix4f::Identity();
+    rotate_martix.block(0, 0, 3, 3) = temp; 
+    return rotate_martix;
 }
 
 Eigen::Matrix4f get_model_matrix(float rotation_angle)
@@ -39,11 +44,11 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
     // Then return it.
     float r = rotation_angle*MY_PI/180.0f;
 
-    ////z-axis
-    //model(0,0) = cos(r);
-    //model(0,1) = -sin(r);
-    //model(1,0) = sin(r);
-    //model(1,1) = cos(r);
+    //z-axis
+    model(0,0) = cos(r);
+    model(0,1) = -sin(r);
+    model(1,0) = sin(r);
+    model(1,1) = cos(r);
 
     // //x-axis
     // model(1,1) = cos(r);
@@ -51,13 +56,11 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
     // model(2,1) = sin(r);
     // model(2,2) = cos(r);
 
-    //y-axis
-    model(0,0) = cos(r);
-    model(0,2) = sin(r);
-    model(2,0) = - sin(r);
-    model(2,2) = cos(r);
-
-    // std::cout<<model<<std::endl;
+    ////y-axis
+    //model(0,0) = cos(r);
+    //model(0,2) = sin(r);
+    //model(2,0) = - sin(r);
+    //model(2,2) = cos(r);
 
     return model;
 }
@@ -148,9 +151,15 @@ int main(int argc, const char** argv)
         return 0;
     }
 
+    auto z_axis = Vector3f(0.0, 0.0, 1.0);
+    auto x_axis = Vector3f(1.0, 0.0, 0.0);
+    auto y_axis = Vector3f(0.0, 1.0, 0.0);
+    auto axis = z_axis;
     while (key != 27) {
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
-        r.set_model(get_model_matrix(angle));
+        //r.set_model(get_model_matrix(angle));
+        
+        r.set_model(get_rotation(axis, angle));
         r.set_view(get_view_matrix(eye_pos));
         r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
 
@@ -164,12 +173,28 @@ int main(int argc, const char** argv)
         std::cout << "frame count: " << frame_count++ << '\n';
 
         if (key == 'a') {
+            axis = y_axis;
             angle += 10;
-            //std::cout<<angle<<std::endl;
         }
         else if (key == 'd') {
+            axis = y_axis;
             angle -= 10;
-            //std::cout<<angle<<std::endl;
+        }
+        else if (key == 'w') {
+            axis = x_axis;
+            angle += 10;
+        }
+        else if (key == 's') {
+            axis = x_axis;
+            angle -= 10;
+        }
+        else if (key == 'q') {
+            axis = z_axis;
+            angle += 10;
+        }
+        else if (key == 'e') {
+            axis = z_axis;
+            angle -= 10;
         }
     }
 
