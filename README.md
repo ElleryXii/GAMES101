@@ -20,3 +20,5 @@
 - Bounding Volume Hierarchy (BVH)
 ## Assignment 7
 - Path tracing
+## Assignment 8
+- Simulation: Euler Method, Verlet Integration
