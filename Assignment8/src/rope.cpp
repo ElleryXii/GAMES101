@@ -11,7 +11,7 @@ namespace CGL {
 
     Rope::Rope(Vector2D start, Vector2D end, int num_nodes, float node_mass, float k, vector<int> pinned_nodes)
     {
-        // TODO (Part 1): Create a rope starting at `start`, ending at `end`, and containing `num_nodes` nodes.
+        // Create a rope starting at `start`, ending at `end`, and containing `num_nodes` nodes.
         Vector2D interval = (end-start)/(double)num_nodes;
     
         masses.push_back(new Mass(start, node_mass, false));
@@ -59,6 +59,11 @@ namespace CGL {
         for (auto &s : springs)
         {
             // TODO (Part 3): Simulate one timestep of the rope using explicit Verlet （solving constraints)
+            double len = (s->m1->position - s->m2->position).norm() - s->rest_length;
+            len = len/2.0;
+            auto dir = (s->m1->position - s->m2->position)/(s->m1->position - s->m2->position).norm();
+            s->m2->forces += dir*len;
+            s->m1->forces -=dir*len;
         }
 
         for (auto &m : masses)
@@ -66,6 +71,10 @@ namespace CGL {
             if (!m->pinned)
             {
                 Vector2D temp_position = m->position;
+                m->forces += m->mass * gravity;
+                m->position += 0.9995*m->forces*delta_t*delta_t;
+                m->position += m->position-temp_position;
+
                 // TODO (Part 3.1): Set the new position of the rope mass
                 
                 // TODO (Part 4): Add global Verlet damping
