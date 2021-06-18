@@ -9,19 +9,13 @@ constexpr double MY_PI = 3.1415926535;
 Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
 {
     Eigen::Matrix4f view = Eigen::Matrix4f::Identity();
-
-    Eigen::Matrix4f translate;
-    translate << 1, 0, 0, -eye_pos[0], 0, 1, 0, -eye_pos[1], 0, 0, 1,
-        -eye_pos[2], 0, 0, 0, 1;
-
-    view = translate * view;
-
+    view << 1, 0, 0, -eye_pos[0], 0, 1, 0, -eye_pos[1], 0, 0, 1, -eye_pos[2], 0, 0, 0, 1;
     return view;
 }
 
 
+// Create the model matrix for rotating the triangle around any axis through origin.
 Eigen::Matrix4f get_rotation(Vector3f axis, float angle) {
-    // Convert deg to rad
     float r = angle * MY_PI / 180.0f;
 
     //Use Rodrigues' Rotation Formula
@@ -35,16 +29,15 @@ Eigen::Matrix4f get_rotation(Vector3f axis, float angle) {
     return rotate_martix;
 }
 
+
+// Create the model matrix for rotating the triangle around the Z axis. Then return it.
 Eigen::Matrix4f get_model_matrix(float rotation_angle)
 {
     Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
 
-    // TODO: Implement this function
-    // Create the model matrix for rotating the triangle around the Z axis.
-    // Then return it.
     float r = rotation_angle*MY_PI/180.0f;
 
-    //z-axis
+    // z-axis
     model(0,0) = cos(r);
     model(0,1) = -sin(r);
     model(1,0) = sin(r);
@@ -56,26 +49,28 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
     // model(2,1) = sin(r);
     // model(2,2) = cos(r);
 
-    ////y-axis
-    //model(0,0) = cos(r);
-    //model(0,2) = sin(r);
-    //model(2,0) = - sin(r);
-    //model(2,2) = cos(r);
+    // //y-axis
+    // model(0,0) = cos(r);
+    // model(0,2) = sin(r);
+    // model(2,0) = - sin(r);
+    // model(2,2) = cos(r);
 
     return model;
 }
 
-Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
-                                      float zNear, float zFar)
+
+//Create the projection matrix for the given parameters. Then return it.
+Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
 {
     Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
 
+    // top of the near plane
     float top = std::tan(eye_fov/2.0f*MY_PI/180.0f) * std::abs(zNear);
     // make top = -top here if you want the triangle upright.
     top = -top;
     float bottom = -top;
     float right = top * aspect_ratio;
-    float left = (-1)*right;
+    float left = -right;
 
     Eigen::Matrix4f perspToOrtho = Eigen::Matrix4f::Identity();
     perspToOrtho(0,0) = zNear;
@@ -84,10 +79,7 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
     perspToOrtho(2,3) = (-1)* zNear *zFar;
     perspToOrtho(3,2) = 1;
     perspToOrtho(3,3) = 0;
-    //std::cout <<perspToOrtho<<std::endl;
 
-    // TODO: Implement this function
-    // Create the projection matrix for the given parameters. Then return it.
     Eigen::Matrix4f scale = Eigen::Matrix4f::Identity();
     scale(0,0) = 2.0f/(right - left);
     scale(1,1) = 2.0f/(top - bottom);
