@@ -12,7 +12,7 @@
 - Phong shading
 - Bump mapping & dispalcement mapping
 ## Assignment 4
-- Bézier curve & De Casetljau algorithm
+- Bézier curve & De Casteljau algorithm
 ## Assignment 5
 - Ray tracing (Whitted-Style)
 - Möller-Trumbore intersection algorithm
@@ -20,3 +20,5 @@
 - Bounding Volume Hierarchy (BVH)
 ## Assignment 7
 - Path tracing
+## Assignment 8
+- Simulation: Euler Method, Verlet Integration
