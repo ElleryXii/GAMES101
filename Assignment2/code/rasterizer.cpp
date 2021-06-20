@@ -42,7 +42,7 @@ auto to_vec4(const Eigen::Vector3f& v3, float w = 1.0f)
 
 static bool insideTriangle(float x, float y, const Vector3f* _v)
 {   
-    // TODO : Implement this function to check if the point (x, y) is inside the triangle represented by _v[0], _v[1], _v[2]
+    //check if the point (x, y) is inside the triangle represented by _v[0], _v[1], _v[2]
     auto point = Eigen::Vector3f(x,y,0);
     auto v1 = _v[0] - _v[1];
     auto v2 = _v[1] - _v[2];
@@ -132,18 +132,17 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t)
     
     // std::cout<< minX << " " << minY << " "<< maxX << " "<< maxY << std::endl;
     // std::cout<< "*********************************************" << std::endl;
-    bool superSampling = false;
+    bool ss = false;
     float const steps[2] = {-0.25, 0.25};
-    const Eigen::Vector3f black = {0,0,0};
 
-    // TODO : Find out the bounding box of current triangle.
+    // Find out the bounding box of current triangle.
     // iterate through the pixel and find if the current pixel is inside the triangle
     for (int i = minX; i<maxX; i++){
         for (int j = minY; j<maxY; j++){
             float x = i+0.5;
             float y = j+0.5;
             
-            if (superSampling) {
+            if (ss) {
                 float r=0, b=0, g=0;
                 bool ztest = false;
                 float min_depth = FLT_MAX;

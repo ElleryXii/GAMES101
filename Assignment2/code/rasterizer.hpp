@@ -61,7 +61,6 @@ namespace rst
         pos_buf_id load_positions(const std::vector<Eigen::Vector3f>& positions);
         ind_buf_id load_indices(const std::vector<Eigen::Vector3i>& indices);
         col_buf_id load_colors(const std::vector<Eigen::Vector3f>& colors);
-
         void set_model(const Eigen::Matrix4f& m);
         void set_view(const Eigen::Matrix4f& v);
         void set_projection(const Eigen::Matrix4f& p);
