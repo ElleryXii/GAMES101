@@ -116,7 +116,7 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     {
         // TODO: Get the texture value at the texture coordinates of the current fragment
         //std::cout << payload.tex_coords.x() << " " << payload.tex_coords.y() << std::endl;
-        return_color = payload.texture->getColor(payload.tex_coords.x(), payload.tex_coords.y());
+        return_color = payload.texture->getColorBilinear(payload.tex_coords.x(), payload.tex_coords.y());
     }
     Eigen::Vector3f texture_color;
     texture_color << return_color.x(), return_color.y(), return_color.z();
@@ -330,8 +330,8 @@ Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
     auto u = payload.tex_coords.x();
     auto v = payload.tex_coords.y();
 
-    auto dU = kh * kn * (payload.texture->getColor(u+1.0/w, v).norm() - payload.texture->getColor(u,v).norm());
-    auto dV = kh * kn * (payload.texture->getColor(u, v+1.0/h).norm() - payload.texture->getColor(u,v).norm());
+    auto dU = kh * kn * (payload.texture->getColorBilinear(u+1.0/w, v).norm() - payload.texture->getColorBilinear(u,v).norm());
+    auto dV = kh * kn * (payload.texture->getColorBilinear(u, v+1.0/h).norm() - payload.texture->getColorBilinear(u,v).norm());
     auto ln = Vector3f(-dU, -dV, 1.0);
 
     normal = (TBN * ln).normalized();
@@ -391,7 +391,7 @@ int main(int argc, const char** argv)
         {
             std::cout << "Rasterizing using the texture shader\n";
             active_shader = texture_fragment_shader;
-            texture_path = "spot_texture.png";
+            texture_path = "spot_texture_512.png";
             r.set_texture(Texture(obj_path + texture_path));
         }
         else if (argc == 3 && std::string(argv[2]) == "normal")
