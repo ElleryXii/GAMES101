@@ -11,6 +11,7 @@
 - Interpolation
 - Phong shading
 - Bump mapping & dispalcement mapping
+- Bilinear interpolation for texture mapping
 ## Assignment 4
 - Bézier curve & De Casteljau algorithm
 ## Assignment 5
